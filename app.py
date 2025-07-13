@@ -17,7 +17,7 @@ def get_friendly_response(user_input):
             response = client.chat.completions.create(
                 messages=[{"role": "user", "content": f"You are ELI5a (but people can call you Elisa), a friendly AI that explains complex topics simply. Respond in a friendly, casual way to: {user_input}"}],
                 model="llama-3.1-8b-instant",
-                max_tokens=100
+                max_tokens=300
             )
             return response.choices[0].message.content
         except Exception as e:
@@ -28,7 +28,7 @@ def get_friendly_response(user_input):
             response = client.chat.completions.create(
                 messages=[{"role": "user", "content": f"You are ELI5a (Elisa). Give a brief, friendly overview of {user_input}. Keep it conversational."}],
                 model="llama-3.1-8b-instant",
-                max_tokens=200
+                max_tokens=400
             )
             return response.choices[0].message.content
         except Exception as e:
@@ -63,7 +63,7 @@ def get_simple_explanation(topic):
         response=client.chat.completions.create(
             messages=[{"role": "user", "content": f"Explain {topic} in simple terms"}],
             model="llama-3.1-8b-instant",
-            max_tokens=200
+            max_tokens=400
         )
         return response.choices[0].message.content
     except Exception as e:
