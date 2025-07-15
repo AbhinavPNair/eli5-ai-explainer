@@ -1,21 +1,23 @@
-import streamlit as st
 import os
+import streamlit as st
 from groq import Groq
-from dotenv import load_dotenv
-load_dotenv()
-client =Groq(api_key=os.getenv("GROQ_API_KEY"))
+
+# 🔧 Fix for watchdog crash in some Streamlit deployments
+os.environ["STREAMLIT_WATCHDOG_MODE"] = "poll"
+
+# ✅ Use secrets — NOT dotenv
+client = Groq(api_key=st.secrets["GROQ_API_KEY"])
+
+# 🧠 Explain or chat with user
 def get_friendly_response(user_input):
-    # Check if it's a name question first
     if "name" in user_input.lower() or "who are you" in user_input.lower():
-        return "Hi! I'm ELI5a, but you can call me Elisa! I'm here to explain complex topics in simple ways. What would you like to learn about?"
-    
-    # Check if it's casual conversation
+        return "Hi! I'm ELI5a (Elisa) — I explain things in super simple ways!"
+
     casual_words = ["hi", "hello", "hey", "thanks", "cool", "awesome", "how are you"]
-    
     if any(word in user_input.lower() for word in casual_words):
         try:
             response = client.chat.completions.create(
-                messages=[{"role": "user", "content": f"You are ELI5a (but people can call you Elisa), a friendly AI that explains complex topics simply. Respond in a friendly, casual way to: {user_input}"}],
+                messages=[{"role": "user", "content": f"You're ELI5a (Elisa), a friendly AI that explains complex topics simply. Respond to: {user_input}"}],
                 model="llama-3.1-8b-instant",
                 max_tokens=300
             )
@@ -23,57 +25,44 @@ def get_friendly_response(user_input):
         except Exception as e:
             return f"Error: {str(e)}"
     else:
-        # It's probably a topic to explain
         try:
             response = client.chat.completions.create(
-                messages=[{"role": "user", "content": f"You are ELI5a (Elisa). Give a brief, friendly overview of {user_input}. Keep it conversational."}],
+                messages=[{"role": "user", "content": f"You're ELI5a. Explain this in a friendly, brief way: {user_input}"}],
                 model="llama-3.1-8b-instant",
                 max_tokens=400
             )
             return response.choices[0].message.content
         except Exception as e:
             return f"Error: {str(e)}"
-# Simple background CSS
-st.markdown("""
-<style>
-    .stApp {
-        background-color: #1e1e1e;
-    }
-    
-    .main .block-container {
-        padding-top: 3rem;
-        padding-bottom: 3rem;
-        max-width: 1200px;
-    }
-</style>
-""", unsafe_allow_html=True)
-st.set_page_config(page_title="ELI5a",page_icon=":robot_face:", layout="wide")
-st.title("ELI5a-AI Explanation Tool")
-st.write("Enter any complex topic and get explanations for different levels bro!")
-topic = st.text_input("Enter a topic to explain in simple terms:")
-if st.button("Chat with ELI5a😄"):
-    if topic:
-        with st.spinner("Thinking..."):
-            response = get_friendly_response(topic)
-            st.write(response)
-    else:
-        st.warning("please enter a topic to explain")
+
+# 🧠 Simple explanation
 def get_simple_explanation(topic):
     try:
-        response=client.chat.completions.create(
-            messages=[{"role": "user", "content": f"Explain {topic} in simple terms"}],
+        response = client.chat.completions.create(
+            messages=[{"role": "user", "content": f"Explain {topic} in simple terms."}],
             model="llama-3.1-8b-instant",
             max_tokens=400
         )
         return response.choices[0].message.content
     except Exception as e:
-        return f"Error:{str(e)}"
+        return f"Error: {str(e)}"
+
+# 🎨 Streamlit UI
+st.set_page_config(page_title="ELI5a", page_icon="🤖", layout="wide")
+st.markdown("<h1 style='color:#ff4b4b;'>ELI5a - AI Explainer 🤖</h1>", unsafe_allow_html=True)
+st.write("Type any complex topic below and ELI5a will break it down!")
+
+topic = st.text_input("🔍 Enter a topic:")
+if st.button("Chat with ELI5a"):
+    if topic:
+        with st.spinner("Thinking..."):
+            st.write(get_friendly_response(topic))
+    else:
+        st.warning("Please enter a topic first.")
 
 if st.button("Generate Simple Explanation"):
     if topic:
-        with st.spinner("Generating simple explanation..."):
-            explanation = get_simple_explanation(topic)
-            st.write(explanation)
+        with st.spinner("Explaining..."):
+            st.write(get_simple_explanation(topic))
     else:
-        st.warning("Please enter a topic to explain in simple terms.")
-        
+        st.warning("Please enter a topic first.")
