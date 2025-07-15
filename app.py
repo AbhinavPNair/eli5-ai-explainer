@@ -1,3 +1,13 @@
+import sys
+import traceback
+
+def crash_handler(type, value, tb):
+    print("🔥 Streamlit crashed with an exception 🔥")
+    traceback.print_exception(type, value, tb)
+    sys.__excepthook__(type, value, tb)
+
+sys.excepthook = crash_handler
+
 import os
 import streamlit as st
 from groq import Groq
